@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Twitch OAuth Implicit Flow</title>
+</head>
+<body>
+  <h1>Twitch OAuth - Implicit Flow</h1>
+  <button onclick="loginWithTwitch()">Login with Twitch</button>
+  <pre id="output"></pre>
+
+  <script>
+    const clientId = 'hgawrxjs6ddkvtk4zb9kcevzcewkjm';
+    const redirectUri = 'https://twitch-analyzer.onrender.com';  // Adjust if using another port
+    const scopes = 'analytics:read:extensions analytics:read:games user:read:email';
+
+   function login() {
+      const authUrl =
+        `https://id.twitch.tv/oauth2/authorize` +
+        `?client_id=${clientId}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=token` +
+        `&scope=${encodeURIComponent(scopes)}`;
+      window.location.href = authUrl;
+    }
+
+    window.onload = () => {
+      const hash = window.location.hash;
+      if (hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const token = params.get('access_token');
+
+        fetch('/save_token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: token })
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('result').textContent = `Token saved.\n${JSON.stringify(data)}`;
+        });
+      }
+    };
+  </script>
+</body>
+</html>
