@@ -7,3 +7,4 @@ venv/
 key.pem
 tokens.json
 cert.pem
+collect_twitch_local.py
