@@ -179,4 +179,4 @@ async def get_streams_async(access_token):
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem', 'key.pem'), port=8443)
+    app.run()
