@@ -7,7 +7,7 @@ import httpx
 import pandas as pd
 from datetime import datetime
 from urllib.parse import urlencode
-from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES
+from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, PROJECT_ID, DATASET_ID, TABLE_ID
 import bq_upload
 
 app = Flask(__name__)
@@ -173,7 +173,7 @@ async def get_streams_async(access_token):
             params["after"] = cursor
 
         df = pd.DataFrame(all_streams)
-        bq_upload.upload_data(df)
+        bq_upload.upload_data(df, PROJECT_ID, DATASET_ID, TABLE_ID)
         now = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
         df.to_json(f"streams-{now}.ndjson", orient="records", lines=True)
 
