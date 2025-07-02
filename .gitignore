@@ -9,3 +9,5 @@ tokens.json
 cert.pem
 collect_twitch_local.py
 /__pycache__
+frontend/node_modules
+.DS_store
