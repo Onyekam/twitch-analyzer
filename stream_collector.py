@@ -6,6 +6,7 @@ import os
 import pandas as pd
 from datetime import datetime
 from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES
+import bq_upload
 
 TOKEN_FILE = "tokens.json"
 
@@ -94,7 +95,8 @@ def main():
             timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
             filename = f"streams-{timestamp}.ndjson"
             df.to_json(filename, orient="records", lines=True)
-            print(f"Saved {len(df)} streams to {filename}")
+            bq_upload.upload_data(df)
+            print(f"Saved {len(df)} streams")
         else:
             print("No stream data collected.")
     except Exception as e:
