@@ -1,8 +1,9 @@
 from google.cloud import bigquery
 import pandas as pd
-from config import PROJECT_ID, DATASET_ID,TABLE_ID
-
+from config import PROJECT_ID, DATASET_ID,TABLE_ID,GOOGLE_APPLICATION_CREDENTIALS
+import os
 # Set your Google Cloud project ID
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 
 def upload_data(data):
 
