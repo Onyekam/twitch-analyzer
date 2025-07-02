@@ -7,9 +7,12 @@ import httpx
 import pandas as pd
 from datetime import datetime
 from urllib.parse import urlencode
-from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, PROJECT_ID, DATASET_ID, TABLE_ID
+from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, GOOGLE_APPLICATION_CREDENTIALS
 import bq_upload
 from threading import Thread
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+
 
 app = Flask(__name__)
 TOKEN_FILE = "tokens.json"
@@ -175,7 +178,7 @@ async def get_streams_async_backup(access_token):
             params["after"] = cursor
 
         df = pd.DataFrame(all_streams)
-        bq_upload.upload_data(df, PROJECT_ID, DATASET_ID, TABLE_ID)
+        bq_upload.upload_data(df)
         now = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
         df.to_json(f"streams-{now}.ndjson", orient="records", lines=True)
 
