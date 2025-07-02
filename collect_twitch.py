@@ -9,6 +9,7 @@ from datetime import datetime
 from urllib.parse import urlencode
 from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, PROJECT_ID, DATASET_ID, TABLE_ID
 import bq_upload
+from threading import Thread
 
 app = Flask(__name__)
 TOKEN_FILE = "tokens.json"
@@ -132,15 +133,16 @@ def get_user():
     response = requests.get("https://api.twitch.tv/helix/users", headers=headers)
     return jsonify(response.json())
 
-@app.route("/streams")
-def get_streams():
+
+@app.route("/streams-backup")
+def get_streams_backup():
     access_token, redirect_response = get_valid_token()
     if redirect_response:
         return redirect_response
 
-    return asyncio.run(get_streams_async(access_token))
+    return asyncio.run(get_streams_async_backup(access_token))
 
-async def get_streams_async(access_token):
+async def get_streams_async_backup(access_token):
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Client-Id": CLIENT_ID
@@ -178,6 +180,70 @@ async def get_streams_async(access_token):
         df.to_json(f"streams-{now}.ndjson", orient="records", lines=True)
 
     return jsonify({"data": all_streams})
+
+
+@app.route("/streams")
+def get_streams():
+    access_token, redirect_response = get_valid_token()
+    if redirect_response:
+        return redirect_response
+
+    # Trigger background job
+    Thread(target=background_stream_fetcher, args=(access_token,)).start()
+    return jsonify({"status": "Stream fetching started"}), 202
+
+def background_stream_fetcher(access_token):
+    """Run the async function inside a thread-safe wrapper"""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(get_streams_async(access_token))
+    loop.close()
+
+
+async def get_streams_async(access_token):
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Client-Id": CLIENT_ID
+    }
+
+    all_streams = []
+    url = "https://api.twitch.tv/helix/streams"
+    params = {"first": 100}
+
+    async with httpx.AsyncClient() as client:
+        page_count = 0
+        while True:
+            response = await client.get(url, headers=headers, params=params)
+            if response.status_code != 200:
+                # Log or handle error instead of returning from async context
+                print("Error fetching streams:", response.text)
+                return
+
+            data = response.json()
+            all_streams.extend(data.get("data", []))
+
+            pagination = data.get("pagination", {})
+            cursor = pagination.get("cursor")
+
+            page_count += 1
+            if not cursor:
+                break
+
+            if page_count % 5 == 0:
+                await asyncio.sleep(1)
+
+            params["after"] = cursor
+
+        df = pd.DataFrame(all_streams)
+
+        # Upload to BigQuery
+        try:
+            bq_upload.upload_data(df)
+        except Exception as e:
+            print("BQ upload error:", e)
+
+        # OPTIONAL: For debugging/logging only — DO NOT USE on Render
+        print(f"Fetched {len(df)} streams at {datetime.now().isoformat()}")
 
 
 if __name__ == "__main__":
