@@ -9,4 +9,4 @@ pyarrow
 google-cloud-bigquery
 prefect
 fastapi
-uvicorn
+uvicorn[standard]
