@@ -8,3 +8,5 @@ pandas_gbq
 pyarrow
 google-cloud-bigquery
 prefect
+fastapi
+uvicorn
