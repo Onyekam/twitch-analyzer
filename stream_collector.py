@@ -21,6 +21,12 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 
 TOKEN_FILE = "tokens.json"
 
+
+CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET")
+REPO = os.environ.get("REPOSITORY")
+GH_TOKEN = os.environ.get("GITHUB_TOKEN")
+
 def get_valid_token():
     try:
         with open(TOKEN_FILE) as f:
@@ -68,6 +74,96 @@ def get_valid_token():
     #raise RuntimeError(f"Failed to refresh token: {str(e)}") from e
 
     #raise RuntimeError("Failed to refresh token. Re-authentication required.")
+
+
+def get_valid_token2():
+    tokens = None
+
+    # 1. Prefer GitHub secret
+    tokens_json = os.environ.get("TWITCH_TOKENS")
+    if tokens_json:
+        try:
+            tokens = json.loads(tokens_json)
+        except json.JSONDecodeError:
+            raise RuntimeError("TWITCH_TOKENS secret is not valid JSON")
+    elif os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE) as f:
+            tokens = json.load(f)
+    else:
+        raise RuntimeError("No tokens found. Set TWITCH_TOKENS or create tokens.json")
+
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token")
+
+    # Test token
+    headers = {"Authorization": f"Bearer {access_token}", "Client-Id": CLIENT_ID}
+    test_response = requests.get("https://api.twitch.tv/helix/users", headers=headers)
+
+    if test_response.status_code == 200:
+        return access_token
+
+    # Refresh token
+    print("Refreshing access token...")
+    refresh_url = "https://id.twitch.tv/oauth2/token"
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+    }
+    response = requests.post(refresh_url, data=data)
+
+    if response.status_code != 200:
+        raise RuntimeError(f"Error refreshing token: {response.text}")
+
+    new_tokens = response.json()
+
+    # --- Local: save to file
+    if not os.environ.get("GITHUB_ACTIONS"):
+        with open(TOKEN_FILE, "w") as f:
+            json.dump(new_tokens, f, indent=2)
+
+    # --- GitHub: update secret
+    else:
+        update_github_secret("TWITCH_TOKENS", json.dumps(new_tokens))
+
+    return new_tokens.get("access_token")
+
+def update_github_secret(secret_name, secret_value):
+    """Update a GitHub Actions secret with the new tokens"""
+    print(f"Updating GitHub secret: {secret_name}")
+
+    url = f"https://api.github.com/repos/{REPO}/actions/secrets/{secret_name}"
+    headers = {
+        "Authorization": f"Bearer {GH_TOKEN}",
+        "Accept": "application/vnd.github+json",
+    }
+
+    # Get public key for encryption
+    key_url = f"https://api.github.com/repos/{REPO}/actions/secrets/public-key"
+    key_resp = requests.get(key_url, headers=headers)
+    key_resp.raise_for_status()
+    key_data = key_resp.json()
+
+    from nacl import encoding, public
+
+    def encrypt(public_key: str, secret_value: str) -> str:
+        public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+        sealed_box = public.SealedBox(public_key)
+        encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+        return base64.b64encode(encrypted).decode("utf-8")
+
+    encrypted_value = encrypt(key_data["key"], secret_value)
+
+    put_data = {
+        "encrypted_value": encrypted_value,
+        "key_id": key_data["key_id"],
+    }
+    put_resp = requests.put(url, headers=headers, json=put_data)
+    put_resp.raise_for_status()
+    print("Secret updated successfully ✅")
+
+
 
 
 async def fetch_streams_backup(access_token):
@@ -166,7 +262,7 @@ def monitor_collection():
 
 
 def main():
-    access_token = get_valid_token()
+    access_token = get_valid_token2()
     background_stream_fetcher(access_token)
     monitor_collection()
     #print(task_message)
