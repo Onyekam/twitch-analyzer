@@ -76,7 +76,7 @@ def get_valid_token():
     #raise RuntimeError("Failed to refresh token. Re-authentication required.")
 
 
-def get_valid_token2():
+def get_valid_token3():
     tokens = None
 
     # 1. Prefer GitHub secret (Actions env var)
@@ -263,7 +263,7 @@ def monitor_collection():
 
 
 def main():
-    access_token = get_valid_token2()
+    access_token = get_valid_token3()
     background_stream_fetcher(access_token)
     monitor_collection()
     #print(task_message)
