@@ -9,6 +9,7 @@ from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, GOOGLE_APPLIC
 import bq_upload
 from threading import Thread
 from dotenv import load_dotenv
+import base64
 #import traceback
 load_dotenv()
 load_dotenv(dotenv_path='.env')
