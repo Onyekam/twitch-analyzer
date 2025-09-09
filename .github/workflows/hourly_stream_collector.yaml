@@ -5,11 +5,11 @@ on:
     - cron: '0 * * * *'   # runs at the top of every hour (UTC)
   workflow_dispatch:       # allow manual trigger from Actions tab
 
-permissions:
+permissions: |
   contents: read
   actions: write
   secrets: write
-  
+
 
 jobs:
   run-collector:
