@@ -8,7 +8,6 @@ from datetime import datetime
 from config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SCOPES, GOOGLE_APPLICATION_CREDENTIALS
 import bq_upload
 from threading import Thread
-from prefect import flow, task
 from dotenv import load_dotenv
 #import traceback
 load_dotenv()
@@ -107,7 +106,6 @@ async def fetch_streams_backup(access_token):
     return all_streams
 
 
-@task
 def background_stream_fetcher(access_token):
     """Run the async function inside a thread-safe wrapper"""
     asyncio.run(get_streams_async(access_token))
@@ -159,17 +157,20 @@ async def get_streams_async(access_token):
         # OPTIONAL: For debugging/logging only — DO NOT USE on Render
         print(f"Fetched {len(df)} streams at {datetime.now().isoformat()}")
 
-@flow
+def monitor_collection():
+    try:
+        requests.get("https://hc-ping.com/1573d1fb-6e6b-4356-a036-c506310fa0d8", timeout=10)
+    except requests.RequestException as e:
+        print("Ping failed: %s" % e)
+
+
+
 def main():
     access_token = get_valid_token()
     background_stream_fetcher(access_token)
+    monitor_collection()
     #print(task_message)
 
 
-@flow
-def my_flow():
-    print("Hello, Prefect!")
-
-
 if __name__ == "__main__":
-    main.serve(name="twitch-trial-deployment", cron="*/30 * * * *")
+    main()

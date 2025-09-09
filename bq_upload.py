@@ -17,6 +17,14 @@ def upload_data(data):
 
     # Example DataFrame
    
+    # Add created_ts column with the current UTC timestamp for this upload
+    try:
+        # Ensure we don't overwrite if the column already exists
+        if "created_ts" not in data.columns:
+            data["created_ts"] = pd.Timestamp.now(tz="UTC")
+    except Exception:
+        # As a fallback, attempt to assign even if data isn't a standard DataFrame
+        data.loc[:, "created_ts"] = pd.Timestamp.now(tz="UTC")
 
     # Define the table reference
     table_ref = f"{project_id}.{dataset_id}.{table_id}"
