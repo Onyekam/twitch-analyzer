@@ -5,6 +5,7 @@ on:
     - cron: '0 * * * *'   # runs at the top of every hour (UTC)
   workflow_dispatch:       # allow manual trigger from Actions tab
 
+
 jobs:
   run-collector:
     runs-on: ubuntu-latest
