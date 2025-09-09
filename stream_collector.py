@@ -261,10 +261,18 @@ def monitor_collection():
         print("Ping failed: %s" % e)
 
 
+def check_pat():
+    url = f"https://api.github.com/repos/{REPO}"
+    headers = {"Authorization": f"Bearer {GH_PAT}"}
+    resp = requests.get(url, headers=headers)
+    print("PAT check status:", resp.status_code, resp.json())
+
 
 def main():
     access_token = get_valid_token()
+    check_pat()
     background_stream_fetcher(access_token)
+    
     # adds monitoring
     monitor_collection()
     #print(task_message)
