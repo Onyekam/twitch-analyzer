@@ -45,7 +45,7 @@ jobs:
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_REDIRECT_URI: ${{ secrets.TWITCH_REDIRECT_URI }}
           TWITCH_TOKENS: ${{ secrets.TWITCH_TOKENS }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          REPOSITORY: ${{ github.repository }}
         run: python stream_collector.py
 

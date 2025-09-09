@@ -25,7 +25,7 @@ TOKEN_FILE = "tokens.json"
 CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET")
 REPO = os.environ.get("REPOSITORY")
-GH_TOKEN = os.environ.get("GITHUB_TOKEN")
+GH_PAT = os.environ.get("GH_PAT")
 
 def get_valid_token():
     try:
@@ -79,23 +79,26 @@ def get_valid_token():
 def get_valid_token2():
     tokens = None
 
-    # 1. Prefer GitHub secret
+    # 1. Prefer GitHub secret (Actions env var)
     tokens_json = os.environ.get("TWITCH_TOKENS")
     if tokens_json:
         try:
             tokens = json.loads(tokens_json)
         except json.JSONDecodeError:
             raise RuntimeError("TWITCH_TOKENS secret is not valid JSON")
+
+    # 2. Otherwise fallback to local file
     elif os.path.exists(TOKEN_FILE):
         with open(TOKEN_FILE) as f:
             tokens = json.load(f)
+
     else:
         raise RuntimeError("No tokens found. Set TWITCH_TOKENS or create tokens.json")
 
     access_token = tokens.get("access_token")
     refresh_token = tokens.get("refresh_token")
 
-    # Test token
+    # Test if access token still works
     headers = {"Authorization": f"Bearer {access_token}", "Client-Id": CLIENT_ID}
     test_response = requests.get("https://api.twitch.tv/helix/users", headers=headers)
 
@@ -118,28 +121,27 @@ def get_valid_token2():
 
     new_tokens = response.json()
 
-    # --- Local: save to file
+    # Save locally if dev
     if not os.environ.get("GITHUB_ACTIONS"):
         with open(TOKEN_FILE, "w") as f:
             json.dump(new_tokens, f, indent=2)
-
-    # --- GitHub: update secret
     else:
         update_github_secret("TWITCH_TOKENS", json.dumps(new_tokens))
 
     return new_tokens.get("access_token")
 
+
 def update_github_secret(secret_name, secret_value):
-    """Update a GitHub Actions secret with the new tokens"""
+    """Update a GitHub Actions secret using PAT instead of GITHUB_TOKEN"""
     print(f"Updating GitHub secret: {secret_name}")
 
     url = f"https://api.github.com/repos/{REPO}/actions/secrets/{secret_name}"
     headers = {
-        "Authorization": f"Bearer {GH_TOKEN}",
+        "Authorization": f"Bearer {GH_PAT}",  # <-- PAT here
         "Accept": "application/vnd.github+json",
     }
 
-    # Get public key for encryption
+    # Get repo public key
     key_url = f"https://api.github.com/repos/{REPO}/actions/secrets/public-key"
     key_resp = requests.get(key_url, headers=headers)
     key_resp.raise_for_status()
@@ -162,7 +164,6 @@ def update_github_secret(secret_name, secret_value):
     put_resp = requests.put(url, headers=headers, json=put_data)
     put_resp.raise_for_status()
     print("Secret updated successfully ✅")
-
 
 
 
