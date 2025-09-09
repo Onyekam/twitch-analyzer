@@ -141,7 +141,7 @@ def update_github_secret(secret_name, secret_value):
         "Accept": "application/vnd.github+json",
     }
 
-    # Get repo public key
+    # Get repo public key - repo name should be updated 
     key_url = f"https://api.github.com/repos/{REPO}/actions/secrets/public-key"
     key_resp = requests.get(key_url, headers=headers)
     key_resp.raise_for_status()
@@ -265,6 +265,7 @@ def monitor_collection():
 def main():
     access_token = get_valid_token3()
     background_stream_fetcher(access_token)
+    # adds monitoring
     monitor_collection()
     #print(task_message)
 
