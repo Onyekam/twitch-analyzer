@@ -10,3 +10,4 @@ google-cloud-bigquery
 prefect
 fastapi
 uvicorn[standard]
+Flask-Cors==5.0.0
