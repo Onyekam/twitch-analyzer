@@ -38,3 +38,12 @@ models:
     facts:
       schema: facts
       +materialized: table
+    dim:
+      schema: dim
+      +materialized: table
+    tmp:
+      schema: tmp
+      +materialized: table
+    datamart:
+      schema: datamart
+      +materialized: table
