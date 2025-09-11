@@ -3,6 +3,4 @@ version: 2
 sources:
   - name: twitchdata
     tables:
-      - name: most_watched
-      - name: source_streams
-      - name: streams-2025-06-04-15-34-26
+      - name: new_source_september_prod
