@@ -19,31 +19,45 @@ import {
   Tooltip as MuiTooltip,
   Paper,
   Link,
-  Button
+  Button,
+  Alert,
+  List,
+  ListItem,
+  ListItemText
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import DataObjectIcon from "@mui/icons-material/DataObject";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
-const API_URL = "https://your-flask-backend.com/streams"; // Replace with your Render URL
+// Use FastAPI/Vite proxy in dev, or override with VITE_API_BASE for preview/prod
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
+const API_URL = `${API_BASE}/most_streamed/top5`;
+
+type MostStreamedRow = { game_name: string; times_played: number };
 
 const App: React.FC = () => {
-  const [streamData, setStreamData] = useState<any[]>([]);
+  const [rows, setRows] = useState<MostStreamedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = () => {
     setLoading(true);
+    setError(null);
     fetch(API_URL)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
-        setStreamData(Array.isArray(data?.data) ? data.data : []);
+        const arr = Array.isArray(data?.data) ? (data.data as MostStreamedRow[]) : [];
+        setRows(arr);
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
+        setError(String(err));
         setLoading(false);
       });
   };
@@ -53,26 +67,17 @@ const App: React.FC = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!query) return streamData;
+    if (!query) return rows;
     const q = query.toLowerCase();
-    return streamData.filter((s) =>
-      String(s?.game_name || "").toLowerCase().includes(q) ||
-      String(s?.user_name || "").toLowerCase().includes(q)
-    );
-  }, [streamData, query]);
+    return rows.filter((r) => String(r.game_name || "").toLowerCase().includes(q));
+  }, [rows, query]);
 
-  const topGamesMap = useMemo(() => {
-    return filtered.reduce((acc: any, stream: any) => {
-      const game = stream?.game_name || "Unknown";
-      acc[game] = (acc[game] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-  }, [filtered]);
-
-  const chartData = useMemo(
-    () => Object.entries(topGamesMap).map(([name, count]) => ({ name, count })),
-    [topGamesMap]
+  const listItems = useMemo(
+    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played })),
+    [filtered]
   );
+
+  const numberFmt = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }), []);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
@@ -84,7 +89,7 @@ const App: React.FC = () => {
           </Typography>
           <TextField
             size="small"
-            placeholder="Search games or streamers…"
+            placeholder="Search games…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             InputProps={{
@@ -106,31 +111,47 @@ const App: React.FC = () => {
       </AppBar>
 
       <Container maxWidth={false} sx={{ py: 4 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Failed to load data from {API_URL}. {error}
+          </Alert>
+        )}
         <Box sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
           gap: 3
         }}>
           <Card variant="outlined">
-            <CardHeader title="Top Streamed Games" subheader={`${filtered.length} streams`} />
+            <CardHeader title="Most Streamed Games" subheader={`${filtered.length} games`} />
             <CardContent>
               {loading ? (
                 <Box sx={{ py: 6, display: "flex", justifyContent: "center" }}>
                   <CircularProgress />
                 </Box>
-              ) : chartData.length === 0 ? (
+              ) : listItems.length === 0 ? (
                 <Typography color="text.secondary">No data to display.</Typography>
               ) : (
-                <Box sx={{ height: 360 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} angle={-20} height={60} tickMargin={8} />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#6366F1" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <Box>
+                  <List>
+                    {listItems.map((item, idx) => (
+                      <ListItem key={item.name} divider secondaryAction={<Typography color="primary" fontWeight={700}>{numberFmt.format(item.count)}</Typography>}>
+                        <ListItemText primary={<Typography sx={{ textTransform: 'capitalize' }}>{`${idx + 1}. ${item.name}`}</Typography>} secondary="Times streamed" />
+                      </ListItem>
+                    ))}
+                  </List>
                 </Box>
+
+                // Chart preserved for future use:
+                // <Box sx={{ height: 360 }}>
+                //   <ResponsiveContainer width="100%" height="100%">
+                //     <BarChart data={chartData}>
+                //       <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} angle={-20} height={60} tickMargin={8} />
+                //       <YAxis allowDecimals={false} />
+                //       <Tooltip />
+                //       <Bar dataKey="count" fill="#6366F1" radius={[6, 6, 0, 0]} />
+                //     </BarChart>
+                //   </ResponsiveContainer>
+                // </Box>
               )}
             </CardContent>
           </Card>
@@ -140,18 +161,18 @@ const App: React.FC = () => {
               <CardHeader title="Summary" />
               <CardContent>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Chip label={`Games: ${Object.keys(topGamesMap).length}`} />
-                  <Chip color="primary" label={`Streams: ${filtered.length}`} />
+                  <Chip label={`Games: ${filtered.length}`} />
+                  <Chip color="primary" label={`Total Streams Today: ${numberFmt.format(filtered.reduce((a, r) => a + (r.times_played || 0), 0))}`} />
                 </Stack>
               </CardContent>
             </Card>
 
             <Card variant="outlined">
-              <CardHeader avatar={<DataObjectIcon />} title="Raw Stream Data (first 10)" />
+              <CardHeader avatar={<DataObjectIcon />} title="Raw Data" />
               <CardContent>
                 <Paper variant="outlined" sx={{ p: 1.5, maxHeight: 240, overflow: "auto" }}>
                   <pre style={{ margin: 0 }}>
-                    {JSON.stringify(filtered.slice(0, 10), null, 2)}
+                    {JSON.stringify(filtered, null, 2)}
                   </pre>
                 </Paper>
               </CardContent>
@@ -168,7 +189,7 @@ const App: React.FC = () => {
         <Divider sx={{ my: 4 }} />
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="body2" color="text.secondary">
-            Built with Material UI and Recharts
+            Built with Material UI
           </Typography>
           <Button variant="contained" href="#top">
             Back to top
