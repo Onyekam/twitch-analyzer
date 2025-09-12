@@ -25,7 +25,7 @@ TOKEN_FILE = "tokens.json"
 
 CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET")
-REPO = os.environ.get("REPOSITORY")
+REPO = os.environ.get("REPOSITORY") or os.environ.get("GITHUB_REPOSITORY")
 GH_PAT = os.environ.get("GH_PAT")
 
 def get_valid_token_backup():
