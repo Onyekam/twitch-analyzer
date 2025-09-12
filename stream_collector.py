@@ -271,7 +271,7 @@ def main():
     background_stream_fetcher(access_token)
     
     # adds monitoring
-    #monitor_collection()
+    monitor_collection()
     #print(task_message)
 
 
