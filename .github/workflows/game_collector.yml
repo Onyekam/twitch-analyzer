@@ -8,6 +8,7 @@ on:
 jobs:
   run-game-collector:
     runs-on: ubuntu-latest
+    environment: env
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,19 +24,15 @@ jobs:
           pip install -r requirements.txt
 
       - name: Authenticate to Google Cloud
-        id: auth
         uses: google-github-actions/auth@v2
         with:
-          # Secret must contain RAW JSON of the Service Account key
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
       - name: Run game collector
         env:
-          # Point code to the file path created by the auth action
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
-          TABLE_ID: ${{ secrets.TABLE_ID }}
           GAME_TABLE_ID: ${{ secrets.GAME_TABLE_ID }}
           TWITCH_TOKENS: ${{ secrets.TWITCH_TOKENS }}
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
