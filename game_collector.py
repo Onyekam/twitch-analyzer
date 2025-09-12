@@ -257,7 +257,7 @@ async def get_games_async(access_token):
 
 def monitor_collection():
     try:
-        requests.get("https://hc-ping.com/1573d1fb-6e6b-4356-a036-c506310fa0d8", timeout=10)
+        requests.get("https://hc-ping.com/7bde33eb-4143-4df1-b4d0-c14c4fca2c07", timeout=10)
     except requests.RequestException as e:
         print("Ping failed: %s" % e)
 
@@ -326,7 +326,7 @@ def main():
     background_games_fetcher(access_token)
     
     # adds monitoring
-    #monitor_collection()
+    monitor_collection()
     #print(task_message)
 
 
