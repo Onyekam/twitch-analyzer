@@ -2,8 +2,14 @@ from google.cloud import bigquery
 import pandas as pd
 from config import PROJECT_ID, DATASET_ID,TABLE_ID,GOOGLE_APPLICATION_CREDENTIALS,GAME_TABLE_ID
 import os
-# Set your Google Cloud project ID
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+# Respect GitHub Actions auth (ADC). Only set if a real file path is provided and not already set.
+if (
+    not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    and isinstance(GOOGLE_APPLICATION_CREDENTIALS, str)
+    and GOOGLE_APPLICATION_CREDENTIALS.endswith(".json")
+    and os.path.exists(GOOGLE_APPLICATION_CREDENTIALS)
+):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 
 def upload_data(data):
 

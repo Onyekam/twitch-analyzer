@@ -17,7 +17,14 @@ print("CLIENT_ID:", os.getenv("TWITCH_CLIENT_ID"))
 print("TWITCH_CLIENT_SECRET:", os.getenv("TWITCH_CLIENT_SECRET"))
 print("TWITCH_REDIRECT_URI:", os.getenv("TWITCH_REDIRECT_URI"))
 load_dotenv(dotenv_path=".env")
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+# Defer to ADC from Actions auth; only set if local, real file exists and not already set
+if (
+    not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    and isinstance(GOOGLE_APPLICATION_CREDENTIALS, str)
+    and GOOGLE_APPLICATION_CREDENTIALS.endswith(".json")
+    and os.path.exists(GOOGLE_APPLICATION_CREDENTIALS)
+):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 TOKEN_FILE = "tokens.json"
 CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET")
