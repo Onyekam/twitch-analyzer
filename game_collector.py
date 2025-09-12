@@ -168,14 +168,14 @@ def update_github_secret(secret_name, secret_value):
 
 
 
-async def fetch_streams_backup(access_token):
+async def fetch_games_backup(access_token):
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Client-Id": CLIENT_ID
     }
 
-    all_streams = []
-    url = "https://api.twitch.tv/helix/streams"
+    all_games = []
+    url = "https://api.igdb.com/v4/games"
     params = {"first": 100}
 
     async with httpx.AsyncClient() as client:
@@ -184,10 +184,10 @@ async def fetch_streams_backup(access_token):
             response = await client.get(url, headers=headers, params=params)
             if response.status_code != 200:
                 print("Error response:", response.text)
-                raise Exception(f"Error fetching streams: {response.status_code}")
+                raise Exception(f"Error fetching games: {response.status_code}")
 
             data = response.json()
-            all_streams.extend(data.get("data", []))
+            all_games.extend(data.get("data", []))
 
             pagination = data.get("pagination", {})
             cursor = pagination.get("cursor")
@@ -201,59 +201,56 @@ async def fetch_streams_backup(access_token):
 
             params["after"] = cursor
 
-    return all_streams
+    return all_games
 
 
-def background_stream_fetcher(access_token):
+def background_games_fetcher(access_token):
     """Run the async function inside a thread-safe wrapper"""
-    asyncio.run(get_streams_async(access_token))
+    asyncio.run(get_games_async(access_token))
 
 
 
-async def get_streams_async(access_token):
+async def get_games_async(access_token):
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Client-Id": CLIENT_ID
+        "Client-Id": CLIENT_ID,
     }
 
-    all_streams = []
-    url = "https://api.twitch.tv/helix/streams"
-    params = {"first": 100}
+    url = "https://api.igdb.com/v4/games"
+    batch_size = 500
+    offset = 0
+    total_fetched = 0
 
-    async with httpx.AsyncClient() as client:
-        page_count = 0
+    async with httpx.AsyncClient(timeout=30.0) as client:
         while True:
-            response = await client.get(url, headers=headers, params=params)
+            # IGDB requires POST with body query
+            query = f"fields id, name, genres.name, platforms.name, summary; limit {batch_size}; offset {offset};"
+
+            response = await client.post(url, headers=headers, content=query)
             if response.status_code != 200:
-                # Log or handle error instead of returning from async context
-                print("Error fetching streams:", response.text)
-                return
-
-            data = response.json()
-            all_streams.extend(data.get("data", []))
-
-            pagination = data.get("pagination", {})
-            cursor = pagination.get("cursor")
-
-            page_count += 1
-            if not cursor:
+                print("Error fetching games:", response.text)
                 break
 
-            if page_count % 5 == 0:
-                await asyncio.sleep(1)
+            data = response.json()
+            if not data:
+                print("No more games to fetch. Done ✅")
+                break
 
-            params["after"] = cursor
+            # Flatten and upload
+            df = flatten_games_batch(data)
+            try:
+                bq_upload.upload_game_data(df)
+            except Exception as e:
+                print(f"BigQuery upload failed for offset {offset}: {e}")
 
-        df = pd.DataFrame(all_streams)
+            total_fetched += len(df)
+            print(
+                f"Fetched batch: offset={offset}, size={len(df)}, total={total_fetched}, time={datetime.now().isoformat()}"
+            )
 
-        # Upload to BigQuery
-        try:
-            bq_upload.upload_data(df)
-        except Exception as e:
-            print("BQ upload error:", e)
-
-        # OPTIONAL: For debugging/logging only — DO NOT USE on Render
-        print(f"Fetched {len(df)} streams at {datetime.now().isoformat()}")
+            # Prepare next batch
+            offset += batch_size
+            await asyncio.sleep(0.25)  # small delay for rate limiting
 
 def monitor_collection():
     try:
@@ -269,10 +266,61 @@ def check_pat():
     print("PAT check status:", resp.status_code, resp.json())
 
 
+def flatten_games_batch(data):
+    """
+    Convert raw IGDB batch into a clean DataFrame for BigQuery.
+    Ensures all fields are primitive (int/string) — no nested objects.
+    """
+    flat_data = []
+
+    for game in data:
+        flat_game = {}
+
+        # --- ID (force int or None) ---
+        raw_id = game.get("id")
+        if isinstance(raw_id, list) and raw_id:
+            flat_game["id"] = int(raw_id[0])
+        elif isinstance(raw_id, dict) and "value" in raw_id:
+            flat_game["id"] = int(raw_id["value"])
+        else:
+            try:
+                flat_game["id"] = int(raw_id)
+            except Exception:
+                flat_game["id"] = None
+
+        # --- Name ---
+        flat_game["name"] = game.get("name")
+
+        # --- Genres ---
+        genres = game.get("genres")
+        if genres and isinstance(genres, list):
+            flat_game["genres"] = ", ".join(
+                [str(g.get("name", "")) for g in genres if isinstance(g, dict)]
+            )
+        else:
+            flat_game["genres"] = None
+
+        # --- Platforms ---
+        platforms = game.get("platforms")
+        if platforms and isinstance(platforms, list):
+            flat_game["platforms"] = ", ".join(
+                [str(p.get("name", "")) for p in platforms if isinstance(p, dict)]
+            )
+        else:
+            flat_game["platforms"] = None
+
+        # --- Summary ---
+        flat_game["summary"] = game.get("summary")
+
+        flat_data.append(flat_game)
+
+    return pd.DataFrame(flat_data)
+
+
 def main():
     access_token = get_valid_token()
     #check_pat()
-    background_stream_fetcher(access_token)
+    background_games_fetcher(access_token)
     
     # adds monitoring
     #monitor_collection()
