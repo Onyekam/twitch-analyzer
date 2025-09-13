@@ -252,6 +252,7 @@ async def get_streams_async(access_token):
         print(f"Fetched {len(df)} streams at {datetime.now().isoformat()}")
 
 def monitor_collection():
+    # Monitor is set to check once a day
     try:
         requests.get("https://hc-ping.com/1573d1fb-6e6b-4356-a036-c506310fa0d8", timeout=10)
     except requests.RequestException as e:
