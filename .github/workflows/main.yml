@@ -41,8 +41,8 @@ jobs:
                 method: oauth
                 project: "${PROJECT_ID}"
                 dataset: "${DATASET_ID}"
+                schema:  "${DATASET_ID}"
                 threads: 4
-                keyfile: "${GOOGLE_APPLICATION_CREDENTIALS}"
           EOL
 
       - name: Authenticate to Google Cloud
