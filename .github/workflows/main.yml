@@ -24,6 +24,26 @@ jobs:
           pip install -r requirements.txt
           # install dbt if not already in requirements.txt
           pip install dbt-core dbt-bigquery
+      
+      - name: Set up dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOL
+          streamdata:
+            target: dev
+            outputs:
+              dev:
+                job_execution_timeout_seconds: 300
+                job_retries: 1
+                location: US
+                priority: interactive
+                type: bigquery
+                method: oauth
+                project: "${PROJECT_ID}"
+                dataset: "${DATASET_ID}"
+                threads: 4
+                keyfile: "${GOOGLE_APPLICATION_CREDENTIALS}"
+          EOL
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -34,5 +54,4 @@ jobs:
         env:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
-        run: |
-          dbt run
+        run: dbt run

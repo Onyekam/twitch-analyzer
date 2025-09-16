@@ -4,3 +4,5 @@ sources:
   - name: twitchdata
     tables:
       - name: new_source_september_prod
+      - name: source_igdb_prod
+      - name: source_igdb_covers_prod

@@ -1,5 +1,16 @@
+with prep as (
+    select
+        sg.sk_game
+        , ig.game_name
+        , ig.genres
+        , ig.platforms
+        , ig.summary
+        , ig.image
+    from {{ref('tmp_games')}} sg -- as stream games
+    inner join {{ref('tmp_igdb_games')}} ig on sg.game_name = ig.game_name
+)
 select
-distinct game_name
-, game_id as sk_game
-from {{ref('stg_new_source_september_prod')}}
-where game_name !=  ""
+    *
+    , current_date as tch_created_ts
+    , current_date as tch_updated_ts
+from prep

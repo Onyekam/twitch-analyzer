@@ -2,7 +2,7 @@ with games as (
     select
     distinct lower(game_name) as game_name
     , game_id
-    , {{hash(['game_name', 'game_id'])}} as sk_games
+    , {{hash(['game_name', 'game_id'])}} as sk_game
     from {{ref('tmp_streams')}}
 )
 select
