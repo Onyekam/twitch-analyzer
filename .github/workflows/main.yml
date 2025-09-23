@@ -28,7 +28,7 @@ jobs:
       - name: Set up dbt profile
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml <<EOL
+          cat > ~/.dbt/profiles.yml <<'EOL'
           streamdata:
             target: dev
             outputs:
@@ -38,7 +38,7 @@ jobs:
                 location: US
                 priority: interactive
                 type: bigquery
-                method: oauth
+                method: service-account
                 project: "${PROJECT_ID}"
                 schema: "${DATASET_ID}"
                 threads: 4
