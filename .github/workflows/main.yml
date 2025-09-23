@@ -55,3 +55,5 @@ jobs:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
         run: dbt run
+
+        
