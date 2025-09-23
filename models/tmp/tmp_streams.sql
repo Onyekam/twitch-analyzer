@@ -33,16 +33,7 @@ with raw_streams as (
         or user_id is not null
     )
 )
-, with_game_data as (
-    select
-        rs.sk_stream_id as sk_stream
-        , rs.user_id
-        , rs.user_login
-        , rs.created_dt
-        , g.*
-    from raw_streams rs
-    left join {{ref('games')}} g on rs.game_name = g.game_name    
-)
+
 select
     *
-from with_game_data
+from raw_streams
