@@ -40,7 +40,7 @@ jobs:
                 type: bigquery
                 method: oauth
                 project: "${PROJECT_ID}"
-                dataset: "${DATASET_ID}"
+                schema: "${DATASET_ID}"
                 threads: 4
           EOL
 
