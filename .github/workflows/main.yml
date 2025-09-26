@@ -9,6 +9,7 @@ jobs:
   dbt-run:
     runs-on: ubuntu-latest
     environment: env
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,10 +25,13 @@ jobs:
           pip install -r requirements.txt
           # install dbt if not already in requirements.txt
           pip install dbt-core dbt-bigquery
-      
-      - name: Set up dbt profile
+
+      - name: Write Google credentials file
         run: |
           mkdir -p ~/.dbt
+          printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
+
+          # write dbt profile
           cat > ~/.dbt/profiles.yml <<'EOL'
           streamdata:
             target: dev
@@ -39,12 +43,13 @@ jobs:
                 priority: interactive
                 type: bigquery
                 method: service-account
-                project: "${PROJECT_ID}"
-                schema: "${DATASET_ID}"
-                keyfile: "${{ github.workspace }}/gcp-creds.json"
+                project: "{{ env_var('PROJECT_ID') }}"
+                schema: "{{ env_var('DATASET_ID') }}"
+                keyfile: "{{ github.workspace }}/gcp-creds.json"
                 threads: 4
           EOL
 
+<<<<<<< Updated upstream
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -53,10 +58,10 @@ jobs:
       - name: Write Google credentials file
         run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
 
+=======
+>>>>>>> Stashed changes
       - name: Run dbt
         env:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
         run: dbt run
-
-        
