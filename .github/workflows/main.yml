@@ -33,7 +33,8 @@ jobs:
 
       - name: Write Google credentials file
         run: |
-          printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
+          mkdir -p ~/.dbt
+          echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}' > ${{ github.workspace }}/gcp-creds.json
 
       - name: Write DBT Profile
         run: |
