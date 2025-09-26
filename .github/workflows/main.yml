@@ -45,7 +45,7 @@ jobs:
                 method: service-account
                 project: "{{ env_var('PROJECT_ID') }}"
                 schema: "{{ env_var('DATASET_ID') }}"
-                keyfile: "{{ github.workspace }}/gcp-creds.json"
+                keyfile: "{{ env_var('GCP_KEYFILE') }}"
                 threads: 4
           EOL
 
@@ -62,4 +62,5 @@ jobs:
         env:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
+          GCP_KEYFILE: ${{ github.workspace }}/gcp-creds.json
         run: dbt run
