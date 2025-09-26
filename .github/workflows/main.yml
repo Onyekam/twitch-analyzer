@@ -41,7 +41,7 @@ jobs:
                 method: service-account
                 project: "${PROJECT_ID}"
                 schema: "${DATASET_ID}"
-                keyfile: "${GOOGLE_APPLICATION_CREDENTIALS}"
+                keyfile: "${{ github.workspace }}/gcp-creds.json"
                 threads: 4
           EOL
 
@@ -50,11 +50,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
+      - name: Write Google credentials file
+        run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
+
       - name: Run dbt
         env:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: dbt run
 
         
