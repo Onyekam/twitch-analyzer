@@ -26,7 +26,16 @@ jobs:
           # install dbt if not already in requirements.txt
           pip install dbt-core dbt-bigquery
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
       - name: Write Google credentials file
+        run: |
+          printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
+
+      - name: Write DBT Profile
         run: |
           mkdir -p ~/.dbt
           printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
@@ -49,14 +58,7 @@ jobs:
                 threads: 4
           EOL
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
-      - name: Write Google credentials file
-        run: |
-          printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
+      
 
       - name: Run dbt
         env:
