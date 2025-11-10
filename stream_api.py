@@ -81,7 +81,7 @@ def most_streamed_top5() -> tuple:
 
         with games as (
             select distinct game_name, image
-            from {game_table}; 
+            from {game_table} 
         )
         SELECT
           game_name
