@@ -190,7 +190,7 @@ const App: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* <Stack spacing={3}>
+          <Stack spacing={3}>
             <Card variant="outlined">
               <CardHeader title="Summary" />
               <CardContent>
@@ -217,7 +217,7 @@ const App: React.FC = () => {
                 Backend URL: <Link href={API_URL} target="_blank" rel="noopener">{API_URL}</Link>
               </Typography>
             </Paper>
-          </Stack> */}
+          </Stack> 
         </Box>
 
         <Divider sx={{ my: 4 }} />
