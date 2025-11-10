@@ -58,7 +58,7 @@ def root() -> tuple:
 
 
 @app.get("/most_streamed/top5")
-def most_streamed_top10() -> tuple:
+def most_streamed_top5() -> tuple:
     """Return top 10 streamed games from the most_streamed table.
 
     Optional query params:
@@ -115,7 +115,7 @@ def most_streamed_top10() -> tuple:
 
 
 @app.get("/most_streamed/top6")
-def most_streamed_top10() -> tuple:
+def most_streamed_top6() -> tuple:
     """Return top 10 streamed games from the most_streamed table.
 
     Optional query params:
