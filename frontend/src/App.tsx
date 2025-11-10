@@ -17,8 +17,8 @@ import {
   Divider,
   Chip,
   Tooltip as MuiTooltip,
-  Paper,
-  Link,
+  //Paper,
+  //Link,
   Button,
   Alert,
   List,
@@ -28,7 +28,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import DataObjectIcon from "@mui/icons-material/DataObject";
+//import DataObjectIcon from "@mui/icons-material/DataObject";
 
 // Use FastAPI/Vite proxy in dev, or override with VITE_API_BASE for preview/prod
 const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
@@ -73,7 +73,7 @@ const App: React.FC = () => {
   }, [rows, query]);
 
   const listItems = useMemo(
-    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played, image:r.url })),
+    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played, url:r.url })),
     [filtered]
   );
 
@@ -135,8 +135,8 @@ const App: React.FC = () => {
                   <List>
   {filtered.map((r, idx) => {
     const imageUrl =
-      r.url || "";
-      //`https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(r.game_name)}-85x120.jpg`; // Twitch box art fallback
+      r.url || 
+        `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(r.game_name)}-85x120.jpg`; // Twitch box art fallback
 
     return (
       <ListItem
@@ -201,7 +201,7 @@ const App: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card variant="outlined">
+            {/* <Card variant="outlined">
               <CardHeader avatar={<DataObjectIcon />} title="Raw Data" />
               <CardContent>
                 <Paper variant="outlined" sx={{ p: 1.5, maxHeight: 240, overflow: "auto" }}>
@@ -210,13 +210,13 @@ const App: React.FC = () => {
                   </pre>
                 </Paper>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            <Paper variant="outlined" sx={{ p: 2, textAlign: "center" }}>
+            {/* <Paper variant="outlined" sx={{ p: 2, textAlign: "center" }}>
               <Typography variant="body2" color="text.secondary">
                 Backend URL: <Link href={API_URL} target="_blank" rel="noopener">{API_URL}</Link>
               </Typography>
-            </Paper>
+            </Paper> */}
           </Stack> 
         </Box>
 
