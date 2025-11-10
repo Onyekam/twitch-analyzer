@@ -34,13 +34,10 @@ jobs:
       - name: Write Google credentials file
         run: |
           mkdir -p ~/.dbt
-          echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}' > ${{ github.workspace }}/gcp-creds.json
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" | tr -d '\r' > ${{ github.workspace }}/gcp-creds.json
 
       - name: Write DBT Profile
         run: |
-          mkdir -p ~/.dbt
-          printf '%s' "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > ${{ github.workspace }}/gcp-creds.json
-
           # write dbt profile
           cat > ~/.dbt/profiles.yml <<'EOL'
           streamdata:
