@@ -34,7 +34,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
 const API_URL = `${API_BASE}/most_streamed/top5`;
 
-type MostStreamedRow = { game_name: string; times_played: number; url?: string };
+type MostStreamedRow = { game_name: string; times_played: number; image?: string };
 
 const App: React.FC = () => {
   const [rows, setRows] = useState<MostStreamedRow[]>([]);
@@ -131,7 +131,7 @@ const App: React.FC = () => {
                   <List>
   {filtered.map((r, idx) => {
     const imageUrl =
-      r.url || 
+      r.image || 
         `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(r.game_name)}-85x120.jpg`; // Twitch box art fallback
 
     return (
