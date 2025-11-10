@@ -55,11 +55,9 @@ jobs:
                 method: service-account
                 project: "{{ env_var('PROJECT_ID') }}"
                 schema: "{{ env_var('DATASET_ID') }}"
-                keyfile: "{{ env_var('GCP_KEYFILE') }}"
+                keyfile: " ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }} "
                 threads: 4
           EOL
-
-      
 
       - name: Run dbt
         env:
