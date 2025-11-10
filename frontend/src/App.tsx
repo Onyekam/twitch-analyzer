@@ -34,7 +34,7 @@ import DataObjectIcon from "@mui/icons-material/DataObject";
 const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
 const API_URL = `${API_BASE}/most_streamed/top5`;
 
-type MostStreamedRow = { game_name: string; times_played: number };
+type MostStreamedRow = { game_name: string; times_played: number; url: string };
 
 const App: React.FC = () => {
   const [rows, setRows] = useState<MostStreamedRow[]>([]);
@@ -73,7 +73,7 @@ const App: React.FC = () => {
   }, [rows, query]);
 
   const listItems = useMemo(
-    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played })),
+    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played, image:r.url })),
     [filtered]
   );
 
@@ -133,12 +133,46 @@ const App: React.FC = () => {
               ) : (
                 <Box>
                   <List>
-                    {listItems.map((item, idx) => (
-                      <ListItem key={item.name} divider secondaryAction={<Typography color="primary" fontWeight={700}>{numberFmt.format(item.count)}</Typography>}>
-                        <ListItemText primary={<Typography sx={{ textTransform: 'capitalize' }}>{`${idx + 1}. ${item.name}`}</Typography>} secondary="Times streamed" />
-                      </ListItem>
-                    ))}
-                  </List>
+  {filtered.map((r, idx) => {
+    const imageUrl =
+      r.url || "";
+      //`https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(r.game_name)}-85x120.jpg`; // Twitch box art fallback
+
+    return (
+      <ListItem
+        key={r.game_name}
+        divider
+        secondaryAction={
+          <Typography color="primary" fontWeight={700}>
+            {numberFmt.format(r.times_played)}
+          </Typography>
+        }
+      >
+        <Box
+          component="img"
+          src={imageUrl}
+          alt={r.game_name}
+          sx={{
+            width: 40,
+            height: 55,
+            borderRadius: 1,
+            objectFit: "cover",
+            mr: 2,
+            flexShrink: 0,
+          }}
+        />
+        <ListItemText
+          primary={
+            <Typography sx={{ textTransform: "capitalize" }}>
+              {`${idx + 1}. ${r.game_name}`}
+            </Typography>
+          }
+          secondary="Times streamed"
+        />
+      </ListItem>
+    );
+  })}
+</List>
                 </Box>
 
                 // Chart preserved for future use:
@@ -156,7 +190,7 @@ const App: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Stack spacing={3}>
+          {/* <Stack spacing={3}>
             <Card variant="outlined">
               <CardHeader title="Summary" />
               <CardContent>
@@ -183,7 +217,7 @@ const App: React.FC = () => {
                 Backend URL: <Link href={API_URL} target="_blank" rel="noopener">{API_URL}</Link>
               </Typography>
             </Paper>
-          </Stack>
+          </Stack> */}
         </Box>
 
         <Divider sx={{ my: 4 }} />

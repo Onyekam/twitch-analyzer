@@ -74,6 +74,63 @@ def most_streamed_top10() -> tuple:
         }), 500
 
     table_fqn = f"`{PROJECT_ID}.{dataset}_datamart.{table}`"
+    game_table = f"`{PROJECT_ID}.{dataset}_dim.games`"
+
+    # Use a generic aggregation that works even if the table stores raw rows
+    sql = f"""
+
+        with games as (
+            select distinct game_name, image
+            from {game_table}; 
+        )
+        SELECT
+          game_name
+          , times_played
+          , image
+        FROM {table_fqn}
+        left join games using (game_name)
+        where created_dt = (select max(created_dt) from {table_fqn})
+        and game_name is not null 
+        ORDER BY times_played DESC
+        
+        LIMIT 5
+    """
+
+    try:
+        client = get_bigquery_client()
+        job = client.query(sql)
+        rows = list(job.result())
+        return jsonify({
+            "project_id": PROJECT_ID,
+            "dataset_id": dataset,
+            "table": table,
+            "data": rows_to_dicts(rows),
+        }), 200
+    except GoogleAPIError as e:
+        return jsonify({"error": str(e)}), 502
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"error": str(e)}), 500
+    
+
+
+
+@app.get("/most_streamed/top6")
+def most_streamed_top10() -> tuple:
+    """Return top 10 streamed games from the most_streamed table.
+
+    Optional query params:
+      - dataset: override dataset id
+      - table: override table name (default: most_streamed)
+    """
+    dataset = request.args.get("dataset") or DATASET_ID
+    table = request.args.get("table") or "game_streams"
+
+    if not PROJECT_ID or not dataset:
+        return jsonify({
+            "error": "Missing PROJECT_ID or DATASET_ID in environment/config",
+        }), 500
+
+    table_fqn = f"`{PROJECT_ID}.{dataset}_datamart.{table}`"
 
     # Use a generic aggregation that works even if the table stores raw rows
     sql = f"""
@@ -81,7 +138,8 @@ def most_streamed_top10() -> tuple:
           game_name,
           times_played
         FROM {table_fqn}
-        where created_dt = current_date()
+        where created_dt = (select max(created_dt) from {table_fqn})
+        and game_name is not null 
         ORDER BY times_played DESC
         
         LIMIT 5
