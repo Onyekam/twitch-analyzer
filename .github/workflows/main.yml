@@ -3,7 +3,7 @@ name: dbt Run
 on:
   workflow_dispatch: {} # allows manual trigger
   schedule:
-    - cron: "0 3 * * *" # optional: every day at 03:00 UTC
+    - cron: "0 */2 * * *" # optional: every hour! -- at 03:00 UTC
 
 jobs:
   dbt-run:
