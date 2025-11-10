@@ -34,7 +34,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
 const API_URL = `${API_BASE}/most_streamed/top5`;
 
-type MostStreamedRow = { game_name: string; times_played: number; url: string };
+type MostStreamedRow = { game_name: string; times_played: number; url?: string };
 
 const App: React.FC = () => {
   const [rows, setRows] = useState<MostStreamedRow[]>([]);
@@ -72,10 +72,6 @@ const App: React.FC = () => {
     return rows.filter((r) => String(r.game_name || "").toLowerCase().includes(q));
   }, [rows, query]);
 
-  const listItems = useMemo(
-    () => filtered.map((r) => ({ name: r.game_name || "Unknown", count: r.times_played, url:r.url })),
-    [filtered]
-  );
 
   const numberFmt = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }), []);
 
@@ -128,7 +124,7 @@ const App: React.FC = () => {
                 <Box sx={{ py: 6, display: "flex", justifyContent: "center" }}>
                   <CircularProgress />
                 </Box>
-              ) : listItems.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <Typography color="text.secondary">No data to display.</Typography>
               ) : (
                 <Box>
@@ -140,36 +136,34 @@ const App: React.FC = () => {
 
     return (
       <ListItem
-        key={r.game_name}
-        divider
-        secondaryAction={
-          <Typography color="primary" fontWeight={700}>
-            {numberFmt.format(r.times_played)}
-          </Typography>
-        }
-      >
-        <Box
-          component="img"
-          src={imageUrl}
-          alt={r.game_name}
-          sx={{
-            width: 40,
-            height: 55,
-            borderRadius: 1,
-            objectFit: "cover",
-            mr: 2,
-            flexShrink: 0,
-          }}
-        />
-        <ListItemText
-          primary={
-            <Typography sx={{ textTransform: "capitalize" }}>
-              {`${idx + 1}. ${r.game_name}`}
-            </Typography>
-          }
-          secondary="Times streamed"
-        />
-      </ListItem>
+  key={r.game_name}
+  divider
+  sx={{ alignItems: "center" }}
+>
+  <Typography variant="body2" sx={{ width: 24, color: "text.secondary", mr: 1 }}>
+    {idx + 1}.
+  </Typography>
+  <Box
+    component="img"
+    src={imageUrl}
+    alt={r.game_name}
+    sx={{
+      width: 40,
+      height: 55,
+      borderRadius: 1,
+      objectFit: "cover",
+      mr: 2,
+      boxShadow: 1,
+    }}
+  />
+  <ListItemText
+    primary={<Typography sx={{ textTransform: "capitalize" }}>{r.game_name}</Typography>}
+    secondary="Times streamed"
+  />
+  <Typography color="primary" fontWeight={700}>
+    {numberFmt.format(r.times_played)}
+  </Typography>
+</ListItem>
     );
   })}
 </List>
