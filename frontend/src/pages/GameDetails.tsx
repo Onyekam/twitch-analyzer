@@ -26,7 +26,7 @@ type GameDetailsData = {
   game_name: string;
   times_played?: number;
   image?: string;
-  description?: string;
+  summary?: string;
   viewers?: number;
 };
 
@@ -54,7 +54,7 @@ const GameDetails: React.FC<Props> = ({ name, apiBase, onBack }) => {
                 game_name: payload.game_name || name,
                 times_played: payload.times_played,
                 image: payload.image,
-                description: payload.summary,
+                summary: payload.summary,
                 viewers: payload.viewers,
               });
               setLoading(false);
@@ -135,7 +135,7 @@ const GameDetails: React.FC<Props> = ({ name, apiBase, onBack }) => {
                     )}
                   </Stack>
 
-                  <Typography color="text.secondary" sx={{ mb: 2 }}>{data?.description || 'No description available.'}</Typography>
+                  <Typography color="text.secondary" sx={{ mb: 2 }}>{data?.summary || 'No description available.'}</Typography>
 
                   <Button variant="contained" onClick={onBack}>Back to list</Button>
                 </Box>

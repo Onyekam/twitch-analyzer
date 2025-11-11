@@ -132,7 +132,7 @@ def games_list() -> tuple:
     game_table = f"`{PROJECT_ID}.{dataset}_dim.games`"
 
     sql = f"""
-        SELECT
+        SELECT distinct
           game_name,
           image,
           summary
@@ -225,14 +225,14 @@ def game_details(game_name: str) -> tuple:
 
     sql = f"""
         with games as (
-            select distinct game_name, image, description
+            select distinct game_name, image, summary
             from {game_table}
         )
         select
-          gs.game_name,
-          gs.times_played,
-          g.image,
-          g.description
+            gs.game_name,
+            gs.times_played,
+            g.image,
+            g.summary as summary
         from {table_fqn} gs
         left join games g using (game_name)
         where gs.created_dt = (select max(created_dt) from {table_fqn})
