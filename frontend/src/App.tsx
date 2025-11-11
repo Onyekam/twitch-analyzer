@@ -1,6 +1,7 @@
 // src/App.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import GameDetails from "./pages/GameDetails";
+import GamesList from "./pages/GamesList";
 import {
   AppBar,
   Toolbar,
@@ -30,6 +31,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import ListIcon from "@mui/icons-material/List";
 //import DataObjectIcon from "@mui/icons-material/DataObject";
 
 // Use FastAPI/Vite proxy in dev, or override with VITE_API_BASE for preview/prod
@@ -94,6 +96,8 @@ const App: React.FC = () => {
     return null;
   }, [hash]);
 
+  const showGamesList = useMemo(() => hash === "#/games", [hash]);
+
   if (gameNameFromHash) {
     return (
       <GameDetails
@@ -102,6 +106,10 @@ const App: React.FC = () => {
         onBack={() => (window.location.hash = "")}
       />
     );
+  }
+
+  if (showGamesList) {
+    return <GamesList apiBase={API_BASE} />;
   }
 
   return (
@@ -125,6 +133,15 @@ const App: React.FC = () => {
               ),
             }}
           />
+          <Button
+            variant="outlined"
+            size="small"
+            href="#/games"
+            startIcon={<ListIcon />}
+            aria-label="All games"
+          >
+            All games
+          </Button>
           <MuiTooltip title="Refresh data">
             <span>
               <IconButton onClick={fetchData} disabled={loading}>

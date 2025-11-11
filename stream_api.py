@@ -113,6 +113,47 @@ def most_streamed_top5() -> tuple:
         return jsonify({"error": str(e)}), 502
     except Exception as e:  # noqa: BLE001
         return jsonify({"error": str(e)}), 500
+
+
+@app.get("/games")
+def games_list() -> tuple:
+    """Return all games from the dim.games table (alphabetical).
+
+    Optional query params:
+      - dataset: override dataset id
+    """
+    dataset = request.args.get("dataset") or DATASET_ID
+
+    if not PROJECT_ID or not dataset:
+        return jsonify({
+            "error": "Missing PROJECT_ID or DATASET_ID in environment/config",
+        }), 500
+
+    game_table = f"`{PROJECT_ID}.{dataset}_dim.games`"
+
+    sql = f"""
+        SELECT
+          game_name,
+          image,
+          description
+        FROM {game_table}
+        WHERE game_name IS NOT NULL
+        ORDER BY LOWER(game_name) ASC
+    """
+
+    try:
+        client = get_bigquery_client()
+        job = client.query(sql)
+        rows = list(job.result())
+        return jsonify({
+            "project_id": PROJECT_ID,
+            "dataset_id": dataset,
+            "data": rows_to_dicts(rows),
+        }), 200
+    except GoogleAPIError as e:
+        return jsonify({"error": str(e)}), 502
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"error": str(e)}), 500
     
 
 
