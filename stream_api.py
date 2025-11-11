@@ -54,7 +54,10 @@ def health() -> tuple:
 
 @app.get("/")
 def root() -> tuple:
-    return jsonify({"service": "stream_api", "endpoints": ["/most_streamed/top5", "/health"]}), 200
+    return jsonify({
+        "service": "stream_api",
+        "endpoints": ["/most_streamed/top5", "/most_streamed/top6", "/games/<game_name>", "/health"]
+    }), 200
 
 
 @app.get("/most_streamed/top5")
@@ -154,6 +157,62 @@ def most_streamed_top6() -> tuple:
             "dataset_id": dataset,
             "table": table,
             "data": rows_to_dicts(rows),
+        }), 200
+    except GoogleAPIError as e:
+        return jsonify({"error": str(e)}), 502
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/games/<game_name>")
+def game_details(game_name: str) -> tuple:
+    """Return details for a single game by name.
+
+    Looks up the latest snapshot in the datamart table and joins to the dim.games
+    table to provide image/description metadata where available.
+    """
+    dataset = request.args.get("dataset") or DATASET_ID
+    table = request.args.get("table") or "game_streams"
+
+    if not PROJECT_ID or not dataset:
+        return jsonify({
+            "error": "Missing PROJECT_ID or DATASET_ID in environment/config",
+        }), 500
+
+    table_fqn = f"`{PROJECT_ID}.{dataset}_datamart.{table}`"
+    game_table = f"`{PROJECT_ID}.{dataset}_dim.games`"
+
+    sql = f"""
+        with games as (
+            select distinct game_name, image, description
+            from {game_table}
+        )
+        select
+          gs.game_name,
+          gs.times_played,
+          g.image,
+          g.description
+        from {table_fqn} gs
+        left join games g using (game_name)
+        where gs.created_dt = (select max(created_dt) from {table_fqn})
+        and gs.game_name = @game_name
+        limit 1
+    """
+
+    try:
+        client = get_bigquery_client()
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[bigquery.ScalarQueryParameter("game_name", "STRING", game_name)]
+        )
+        job = client.query(sql, job_config=job_config)
+        rows = list(job.result())
+        data = rows_to_dicts(rows)
+        # return object (or empty) under data key for consistency with other endpoints
+        return jsonify({
+            "project_id": PROJECT_ID,
+            "dataset_id": dataset,
+            "table": table,
+            "data": data[0] if data else None,
         }), 200
     except GoogleAPIError as e:
         return jsonify({"error": str(e)}), 502

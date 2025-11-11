@@ -1,5 +1,6 @@
 // src/App.tsx
 import React, { useEffect, useMemo, useState } from "react";
+import GameDetails from "./pages/GameDetails";
 import {
   AppBar,
   Toolbar,
@@ -23,6 +24,7 @@ import {
   Alert,
   List,
   ListItem,
+  ListItemButton,
   ListItemText
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -41,6 +43,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [hash, setHash] = useState<string>(window.location.hash || "");
 
   const fetchData = () => {
     setLoading(true);
@@ -66,6 +69,12 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash || "");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
   const filtered = useMemo(() => {
     if (!query) return rows;
     const q = query.toLowerCase();
@@ -74,6 +83,26 @@ const App: React.FC = () => {
 
 
   const numberFmt = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }), []);
+
+  // Simple hash routing: #/game/<name>
+  const gameNameFromHash = useMemo(() => {
+    if (!hash) return null;
+    const prefix = "#/game/";
+    if (hash.startsWith(prefix)) {
+      return decodeURIComponent(hash.slice(prefix.length));
+    }
+    return null;
+  }, [hash]);
+
+  if (gameNameFromHash) {
+    return (
+      <GameDetails
+        name={gameNameFromHash}
+        apiBase={API_BASE}
+        onBack={() => (window.location.hash = "")}
+      />
+    );
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
@@ -135,14 +164,11 @@ const App: React.FC = () => {
         `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(r.game_name)}-85x120.jpg`; // Twitch box art fallback
 
     return (
-      <ListItem
-  key={r.game_name}
-  divider
-  sx={{ alignItems: "center" }}
->
-  <Typography variant="body2" sx={{ width: 24, color: "text.secondary", mr: 1 }}>
-    {idx + 1}.
-  </Typography>
+      <ListItem key={r.game_name} divider sx={{ alignItems: "center" }}>
+        <ListItemButton onClick={() => (window.location.hash = `#/game/${encodeURIComponent(r.game_name)}`)} sx={{ alignItems: "center" }}>
+        <Typography variant="body2" sx={{ width: 24, color: "text.secondary", mr: 1 }}>
+          {idx + 1}.
+        </Typography>
   <Box
     component="img"
     src={imageUrl}
@@ -163,7 +189,8 @@ const App: React.FC = () => {
   <Typography color="primary" fontWeight={700}>
     {numberFmt.format(r.times_played)}
   </Typography>
-</ListItem>
+        </ListItemButton>
+      </ListItem>
     );
   })}
 </List>
