@@ -62,13 +62,17 @@ const GamesList: React.FC<Props> = ({ apiBase }) => {
               </Box>
             ) : (
               <List>
-                {filtered.map((g) => (
-                  <ListItem key={g.game_name} disablePadding>
-                    <ListItemButton onClick={() => (window.location.hash = `#/game/${encodeURIComponent(g.game_name)}`)}>
-                      <ListItemText primary={<Typography sx={{ textTransform: "capitalize" }}>{g.game_name}</Typography>} secondary={g.summary} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
+                {filtered.map((g) => {
+                  const img = g.image || `https://static-cdn.jtvnw.net/ttv-boxart/${encodeURIComponent(g.game_name)}-85x120.jpg`;
+                  return (
+                    <ListItem key={g.game_name} disablePadding>
+                      <ListItemButton onClick={() => (window.location.hash = `#/game/${encodeURIComponent(g.game_name)}`)} sx={{ alignItems: "center" }}>
+                        <Box component="img" src={img} alt={g.game_name} sx={{ width: 48, height: 64, objectFit: "cover", borderRadius: 1, mr: 2 }} />
+                        <ListItemText primary={<Typography sx={{ textTransform: "capitalize" }}>{g.game_name}</Typography>} />
+                      </ListItemButton>
+                    </ListItem>
+                  );
+                })}
               </List>
             )}
           </CardContent>
