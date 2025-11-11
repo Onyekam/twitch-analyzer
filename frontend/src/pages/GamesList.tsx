@@ -7,7 +7,7 @@ type Props = {
   onBack?: () => void;
 };
 
-type GameRow = { game_name: string; image?: string; description?: string };
+type GameRow = { game_name: string; image?: string; summary?: string };
 
 const GamesList: React.FC<Props> = ({ apiBase }) => {
   const [rows, setRows] = useState<GameRow[]>([]);
@@ -65,7 +65,7 @@ const GamesList: React.FC<Props> = ({ apiBase }) => {
                 {filtered.map((g) => (
                   <ListItem key={g.game_name} disablePadding>
                     <ListItemButton onClick={() => (window.location.hash = `#/game/${encodeURIComponent(g.game_name)}`)}>
-                      <ListItemText primary={<Typography sx={{ textTransform: "capitalize" }}>{g.game_name}</Typography>} secondary={g.description} />
+                      <ListItemText primary={<Typography sx={{ textTransform: "capitalize" }}>{g.game_name}</Typography>} secondary={g.summary} />
                     </ListItemButton>
                   </ListItem>
                 ))}
