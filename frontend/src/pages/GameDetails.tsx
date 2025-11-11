@@ -27,7 +27,7 @@ type GameDetailsData = {
   times_played?: number;
   image?: string;
   description?: string;
-  //viewers?: number;
+  viewers?: number;
 };
 
 const GameDetails: React.FC<Props> = ({ name, apiBase, onBack }) => {
