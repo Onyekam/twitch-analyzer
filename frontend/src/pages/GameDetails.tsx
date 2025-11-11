@@ -54,7 +54,7 @@ const GameDetails: React.FC<Props> = ({ name, apiBase, onBack }) => {
                 game_name: payload.game_name || name,
                 times_played: payload.times_played,
                 image: payload.image,
-                description: payload.description,
+                description: payload.summary,
                 viewers: payload.viewers,
               });
               setLoading(false);

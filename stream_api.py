@@ -135,7 +135,7 @@ def games_list() -> tuple:
         SELECT
           game_name,
           image,
-          description
+          summary
         FROM {game_table}
         WHERE game_name IS NOT NULL
         ORDER BY LOWER(game_name) ASC
