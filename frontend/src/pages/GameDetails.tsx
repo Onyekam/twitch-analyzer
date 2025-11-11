@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  AppBar,
-  Toolbar,
-  IconButton,
   Typography,
   Container,
   Card,
@@ -102,16 +99,10 @@ const GameDetails: React.FC<Props> = ({ name, apiBase, onBack }) => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-      <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={onBack}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ ml: 1, fontWeight: 700 }}>{name}</Typography>
-        </Toolbar>
-      </AppBar>
-
       <Container maxWidth="md" sx={{ py: 4 }}>
+        <Button variant="text" startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ mb: 2 }}>
+          Back
+        </Button>
         {error && <Alert severity="error">{error}</Alert>}
 
         <Card variant="outlined">

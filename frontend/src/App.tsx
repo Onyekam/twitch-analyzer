@@ -98,20 +98,6 @@ const App: React.FC = () => {
 
   const showGamesList = useMemo(() => hash === "#/games", [hash]);
 
-  if (gameNameFromHash) {
-    return (
-      <GameDetails
-        name={gameNameFromHash}
-        apiBase={API_BASE}
-        onBack={() => (window.location.hash = "")}
-      />
-    );
-  }
-
-  if (showGamesList) {
-    return <GamesList apiBase={API_BASE} />;
-  }
-
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
       <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -158,23 +144,29 @@ const App: React.FC = () => {
             Failed to load data from {API_URL}. {error}
           </Alert>
         )}
-        <Box sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
-          gap: 3
-        }}>
-          <Card variant="outlined">
-            <CardHeader title="Most Streamed Games" subheader={`${filtered.length} games`} />
-            <CardContent>
-              {loading ? (
-                <Box sx={{ py: 6, display: "flex", justifyContent: "center" }}>
-                  <CircularProgress />
-                </Box>
-              ) : filtered.length === 0 ? (
-                <Typography color="text.secondary">No data to display.</Typography>
-              ) : (
-                <Box>
-                  <List>
+
+        {gameNameFromHash ? (
+          <GameDetails name={gameNameFromHash} apiBase={API_BASE} onBack={() => (window.location.hash = "") } />
+        ) : showGamesList ? (
+          <GamesList apiBase={API_BASE} />
+        ) : (
+          <Box sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
+            gap: 3
+          }}>
+            <Card variant="outlined">
+              <CardHeader title="Most Streamed Games" subheader={`${filtered.length} games`} />
+              <CardContent>
+                {loading ? (
+                  <Box sx={{ py: 6, display: "flex", justifyContent: "center" }}>
+                    <CircularProgress />
+                  </Box>
+                ) : filtered.length === 0 ? (
+                  <Typography color="text.secondary">No data to display.</Typography>
+                ) : (
+                  <Box>
+                    <List>
   {filtered.map((r, idx) => {
     const imageUrl =
       r.image || 
@@ -211,52 +203,25 @@ const App: React.FC = () => {
     );
   })}
 </List>
-                </Box>
-
-                // Chart preserved for future use:
-                // <Box sx={{ height: 360 }}>
-                //   <ResponsiveContainer width="100%" height="100%">
-                //     <BarChart data={chartData}>
-                //       <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} angle={-20} height={60} tickMargin={8} />
-                //       <YAxis allowDecimals={false} />
-                //       <Tooltip />
-                //       <Bar dataKey="count" fill="#6366F1" radius={[6, 6, 0, 0]} />
-                //     </BarChart>
-                //   </ResponsiveContainer>
-                // </Box>
-              )}
-            </CardContent>
-          </Card>
-
-          <Stack spacing={3}>
-            <Card variant="outlined">
-              <CardHeader title="Summary" />
-              <CardContent>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Chip label={`Games: ${filtered.length}`} />
-                  <Chip color="primary" label={`Total Streams Today: ${numberFmt.format(filtered.reduce((a, r) => a + (r.times_played || 0), 0))}`} />
-                </Stack>
+                  </Box>
+                )}
               </CardContent>
             </Card>
 
-            {/* <Card variant="outlined">
-              <CardHeader avatar={<DataObjectIcon />} title="Raw Data" />
-              <CardContent>
-                <Paper variant="outlined" sx={{ p: 1.5, maxHeight: 240, overflow: "auto" }}>
-                  <pre style={{ margin: 0 }}>
-                    {JSON.stringify(filtered, null, 2)}
-                  </pre>
-                </Paper>
-              </CardContent>
-            </Card> */}
+            <Stack spacing={3}>
+              <Card variant="outlined">
+                <CardHeader title="Summary" />
+                <CardContent>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Chip label={`Games: ${filtered.length}`} />
+                    <Chip color="primary" label={`Total Streams Today: ${numberFmt.format(filtered.reduce((a, r) => a + (r.times_played || 0), 0))}`} />
+                  </Stack>
+                </CardContent>
+              </Card>
 
-            {/* <Paper variant="outlined" sx={{ p: 2, textAlign: "center" }}>
-              <Typography variant="body2" color="text.secondary">
-                Backend URL: <Link href={API_URL} target="_blank" rel="noopener">{API_URL}</Link>
-              </Typography>
-            </Paper> */}
-          </Stack> 
-        </Box>
+            </Stack> 
+          </Box>
+        )}
 
         <Divider sx={{ my: 4 }} />
         <Stack direction="row" justifyContent="space-between" alignItems="center">
