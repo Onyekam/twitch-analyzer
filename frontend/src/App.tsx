@@ -102,7 +102,9 @@ const App: React.FC = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
       <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Toolbar sx={{ gap: 2 }}>
-          <BarChartIcon color="primary" />
+          <IconButton onClick={() => (window.location.hash = "")} aria-label="Home" size="small">
+            <BarChartIcon color="primary" />
+          </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
             Twitch Stream Analytics
           </Typography>
