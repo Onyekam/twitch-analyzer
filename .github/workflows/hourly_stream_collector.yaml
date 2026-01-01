@@ -1,8 +1,8 @@
 name: Hourly Stream Collector
 
 on:
-  schedule:
-    - cron: '0 * * * *'   # runs at the top of every hour (UTC)
+  #schedule:
+    #- cron: '0 * * * *'   # runs at the top of every hour (UTC)
   workflow_dispatch:       # allow manual trigger from Actions tab
 
 # there were top level permissions here I had to remove
