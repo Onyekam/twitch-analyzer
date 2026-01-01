@@ -29,11 +29,11 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          #credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
       - name: Write DBT Profile
         env:
-          GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          #GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |
           mkdir -p ~/.dbt
           echo "$GOOGLE_APPLICATION_CREDENTIAL" | tr -d '\r' > ${{ github.workspace }}/gcp-creds.json
@@ -60,4 +60,4 @@ jobs:
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           DATASET_ID: ${{ secrets.DATASET_ID }}
           GCP_KEYFILE: ${{ github.workspace }}/gcp-creds.json
-        run: dbt run
+        #run: dbt run
